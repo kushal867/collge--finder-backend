@@ -1,8 +1,10 @@
 import requests
 from django.conf import settings
+from django.db import models
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+
 from college.models import College, Student, Parent, Favorite, User, Course, Review
 from college.api.serializers import (
     StudentSerializer, ParentSerializer, FavoriteSerializer, UserSerializer,
@@ -39,7 +41,34 @@ def generate_college_comparison(colleges, preferences):
         return response.text  # Return plain text if JSON parsing fails
 
 
-# ---------- Custom API ----------
+# ---------- API: Recommend Colleges by Location ----------
+@api_view(['POST'])
+def recommend_colleges_by_location(request):
+    """Recommend colleges based on user's location using Ollama."""
+    location = request.data.get('location', '')
+    preferences = request.data.get('preferences', '')
+
+    if not location:
+        return Response({'error': 'location is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Find colleges in the same district or municipality
+    colleges = College.objects.filter(
+        models.Q(district__icontains=location) | models.Q(municipality__icontains=location)
+    )
+
+    if not colleges.exists():
+        return Response({'error': 'No colleges found in the given location'}, status=status.HTTP_404_NOT_FOUND)
+
+    try:
+        ollama_result = generate_college_comparison(colleges, preferences)
+        if ollama_result:
+            return Response({"ollama_response": ollama_result}, status=status.HTTP_200_OK)
+        return Response({"error": "Ollama API error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ---------- API: Compare Colleges using IDs ----------
 @api_view(['POST'])
 def compare_colleges_ollama(request):
     """Compare colleges using Ollama AI."""
@@ -62,7 +91,7 @@ def compare_colleges_ollama(request):
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ---------- Generic CRUD Function-Based Views ----------
+# ---------- Generic CRUD Views ----------
 def list_create_view(model, serializer_class):
     """Return a view for listing and creating objects."""
     @api_view(['GET', 'POST'])
