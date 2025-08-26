@@ -7,12 +7,14 @@ from .views import (
     parent_list_create, parent_detail,
     favorite_list_create, favorite_detail,
     user_list_create, user_detail,
-    compare_colleges_ollama
+    compare_colleges_ollama,
+    recommend_colleges_by_location
 )
 
 urlpatterns = [
     # Custom AI comparison
     path('compare-ollama/', compare_colleges_ollama, name='compare-colleges-ollama'),
+     path('recommend-by-location/', recommend_colleges_by_location, name='recommend-colleges-by-location'),
 
     # College
     path('colleges/', college_list_create, name='college-list-create'),
