@@ -31,12 +31,23 @@ class Parent(models.Model):
 		return self.name
 
 # College model
+
 class College(models.Model):
 	name = models.CharField(max_length=200)
 	affiliation = models.CharField(max_length=200)
 	courses = models.ManyToManyField('Course', related_name='colleges')
 	budget = models.DecimalField(max_digits=10, decimal_places=2)
 	facilities = models.TextField(blank=True)
+	province = models.CharField(max_length=100, blank=True)
+	district = models.CharField(max_length=100, blank=True)
+	municipality = models.CharField(max_length=100, blank=True)
+	image = models.ImageField(upload_to='college_images/', blank=True, null=True)
+	brochure = models.FileField(upload_to='college_brochures/', blank=True, null=True)
+	website = models.URLField(blank=True)
+	scholarship = models.CharField(max_length=200, blank=True)
+	latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+	longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+	contact_info = models.CharField(max_length=200, blank=True)
 
 	def __str__(self):
 		return self.name
